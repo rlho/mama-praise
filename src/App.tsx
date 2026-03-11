@@ -7,16 +7,12 @@ import Home from './components/Home'
 import ActivityGrid from './components/ActivityGrid'
 import Settings from './components/Settings'
 
-type Tab = 'home' | 'activity' | 'settings'
+type Tab = 'home' | 'settings'
 
 const tabs: { id: Tab; label: string; icon: (active: boolean) => JSX.Element }[] = [
   {
     id: 'home', label: 'ホーム',
     icon: (a) => <SvgIcon a={a}><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline points="9,22 9,12 15,12 15,22" /></SvgIcon>,
-  },
-  {
-    id: 'activity', label: 'きろく',
-    icon: (a) => <SvgIcon a={a}><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></SvgIcon>,
   },
   {
     id: 'settings', label: 'せってい',
@@ -44,14 +40,24 @@ function AppContent({ userId }: { userId?: string | null }) {
     return <Onboarding onComplete={store.setProfile} />
   }
 
-  const showBabyCategory = store.profile.status === 'postpartum'
+  // 出産予定日から妊娠中/産後を判定
+  const isPostpartum = (() => {
+    const d = store.profile.dueDate || store.profile.birthDate
+    if (!d) return store.profile.status === 'postpartum'
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return new Date(d) <= today
+  })()
+  const showBabyCategory = isPostpartum
 
   return (
     <div className="min-h-screen bg-ivory-50 flex flex-col">
       <main className="flex-1 max-w-lg mx-auto w-full pb-20">
-        {activeTab === 'home' && <Home profile={store.profile} todayRecord={store.todayRecord} />}
-        {activeTab === 'activity' && (
-          <ActivityGrid todayRecord={store.todayRecord} toggleActivity={store.toggleActivity} incrementPraise={store.incrementPraise} showBabyCategory={showBabyCategory} />
+        {activeTab === 'home' && (
+          <>
+            <Home profile={store.profile} todayRecord={store.todayRecord} />
+            <ActivityGrid todayRecord={store.todayRecord} toggleActivity={store.toggleActivity} incrementPraise={store.incrementPraise} showBabyCategory={showBabyCategory} />
+          </>
         )}
         {activeTab === 'settings' && <Settings profile={store.profile} setProfile={store.setProfile} />}
       </main>

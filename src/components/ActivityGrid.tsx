@@ -1,7 +1,6 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { activities, categories } from '../data/messages'
 import { DayRecord } from '../hooks/useStore'
-import { pickRandom } from '../utils/date'
 
 interface ActivityGridProps {
   todayRecord: DayRecord
@@ -25,80 +24,48 @@ function FlowerIcon({ color }: { color: string }) {
   )
 }
 
-export default function ActivityGrid({ todayRecord, toggleActivity, incrementPraise, showBabyCategory }: ActivityGridProps) {
-  const [praiseMessages, setPraiseMessages] = useState<Record<string, string>>({})
+// 記録数に応じた総合メッセージ
+function getSummaryMessage(recorded: string[]): string | null {
+  const count = recorded.length
+  if (count === 0) return null
 
+  const hasBasic = recorded.some(id => ['wakeup', 'eat', 'drink', 'sleep', 'bath'].includes(id))
+  const hasBaby = recorded.some(id => ['breastfeed', 'diaper', 'hold', 'put_to_sleep', 'baby_bath', 'milk', 'baby_food', 'night_cry', 'soothe', 'play', 'read_book'].includes(id))
+  const hasHousework = recorded.some(id => ['housework', 'laundry', 'cook', 'dishes', 'clean'].includes(id))
+
+  if (count >= 8) return 'こんなにたくさん…！今日のあなた、本当にすごいよ。ちゃんと休んでね'
+  if (hasBaby && hasHousework) return '赤ちゃんのお世話もおうちのことも。全部やってるの、すごすぎるよ'
+  if (hasBaby && hasBasic) return '赤ちゃんのことも自分のことも気にかけられてる。えらいよ'
+  if (hasBaby && count >= 3) return '赤ちゃんのお世話おつかれさま。あなたがいるから赤ちゃんは安心だよ'
+  if (hasHousework && count >= 3) return 'おうちのことまでやってるの、頑張りすぎてない？十分すごいよ'
+  if (count >= 5) return '今日はたくさんできたね。自分のこと、ちゃんと褒めてあげて'
+  if (count >= 3) return 'ひとつひとつ、ちゃんとやったんだね。おつかれさま'
+  if (count === 2) return 'ふたつもできたね。それだけで十分だよ'
+  return 'ひとつ記録できたね。それだけで今日は花マルだよ'
+}
+
+export default function ActivityGrid({ todayRecord, toggleActivity, incrementPraise, showBabyCategory }: ActivityGridProps) {
   const visibleCategories = categories.filter(c => showBabyCategory || c.id !== 'baby')
 
-  // 記録済みアクティビティの褒めメッセージ（初回ロード用）
-  const initialMessages = useMemo(() => {
-    const msgs: Record<string, string> = {}
-    for (const id of todayRecord.activities) {
-      if (!praiseMessages[id]) {
-        const activity = activities.find(a => a.id === id)
-        if (activity) msgs[id] = pickRandom(activity.praiseMessages)
-      }
-    }
-    return msgs
-  }, [todayRecord.activities])
-
-  const allMessages = { ...initialMessages, ...praiseMessages }
-
-  // 記録済みのアクティビティ（メッセージ付き）を順番に
-  const recordedWithMessages = todayRecord.activities
-    .map(id => {
-      const activity = activities.find(a => a.id === id)
-      return activity ? { activity, message: allMessages[id] || '' } : null
-    })
-    .filter(Boolean) as { activity: typeof activities[0]; message: string }[]
+  const summaryMessage = useMemo(
+    () => getSummaryMessage(todayRecord.activities),
+    [todayRecord.activities]
+  )
 
   const handleTap = useCallback((activityId: string) => {
     const isActive = todayRecord.activities.includes(activityId)
-    if (isActive) {
-      toggleActivity(activityId)
-      setPraiseMessages(prev => {
-        const next = { ...prev }
-        delete next[activityId]
-        return next
-      })
-      return
-    }
-    const activity = activities.find(a => a.id === activityId)
-    if (!activity) return
+    if (isActive) { toggleActivity(activityId); return }
     toggleActivity(activityId)
     incrementPraise()
-    setPraiseMessages(prev => ({
-      ...prev,
-      [activityId]: pickRandom(activity.praiseMessages),
-    }))
   }, [todayRecord, toggleActivity, incrementPraise])
 
   return (
     <div className="animate-fade-in">
-      <div className="bg-gradient-to-b from-ivory-200 to-ivory-50 px-6 pt-8 pb-5">
-        <h2 className="text-center text-lg font-bold text-gray-700">今日やったこと</h2>
-      </div>
-
-      <div className="px-5 pb-8">
-        {/* 褒めメッセージをトップに表示 */}
-        {recordedWithMessages.length > 0 && (
-          <div className="mb-5 space-y-2 animate-fade-in-up">
-            {recordedWithMessages.map(({ activity, message }) => (
-              <div
-                key={`msg-${activity.id}`}
-                className="bg-accent-50 rounded-xl px-4 py-3 border border-accent-100 animate-fade-in-up"
-              >
-                <div className="flex items-start gap-2">
-                  <div className="w-5 h-5 flex-shrink-0 mt-0.5">
-                    <FlowerIcon color="#B07A55" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-bold text-accent-400">{activity.label}</span>
-                    <p className="text-sm text-gray-600 leading-relaxed mt-0.5">{message}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+      <div className="px-5 pb-8 pt-2">
+        {/* 総合褒めメッセージ */}
+        {summaryMessage && (
+          <div className="mb-5 bg-accent-50 rounded-2xl px-5 py-4 border border-accent-100 animate-fade-in-up">
+            <p className="text-sm text-gray-700 leading-relaxed text-center">{summaryMessage}</p>
           </div>
         )}
 
