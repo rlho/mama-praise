@@ -1,11 +1,10 @@
 import { useMemo } from 'react'
+import Lottie from 'lottie-react'
+import sparkleAnimation from '../assets/sparkle.json'
 import { UserProfile, DayRecord } from '../hooks/useStore'
-import {
-  timeGreetings,
-  getPregnancyPersonalizedMessage,
-  getPostpartumPersonalizedMessage,
-  getBodyKnowledge,
-} from '../data/messages'
+import { timeGreetings } from '../data/messages'
+import { getDailyPregnancyMessage } from '../data/pregnancyDaily'
+import { getDailyPostpartumMessage } from '../data/postpartumDaily'
 import {
   getTimeOfDay,
   getPregnancyInfo,
@@ -27,14 +26,27 @@ export default function Home({ profile, todayRecord }: HomeProps) {
   const personalized = useMemo(() => {
     if (profile.status === 'pregnant' && profile.dueDate) {
       const info = getPregnancyInfo(profile.dueDate)
-      const msg = getPregnancyPersonalizedMessage(info.weeks, info.days)
-      const bodyKnow = getBodyKnowledge(info.weeks)
-      return { ...msg, bodyKnowledge: bodyKnow, type: 'pregnant' as const, info }
+      const msg = getDailyPregnancyMessage(info.totalDays)
+      return {
+        title: `妊娠${info.weeks}週${info.days}日`,
+        body: msg.body,
+        babyInfo: msg.babyInfo,
+        bodyKnowledge: msg.bodyKnowledge,
+        type: 'pregnant' as const,
+        info,
+      }
     }
     if (profile.status === 'postpartum' && profile.birthDate) {
       const info = getPostpartumInfo(profile.birthDate)
-      const msg = getPostpartumPersonalizedMessage(info.months, info.totalDays)
-      return { ...msg, bodyKnowledge: null, type: 'postpartum' as const, info }
+      const msg = getDailyPostpartumMessage(info.totalDays)
+      return {
+        title: msg.title,
+        body: msg.body,
+        babyInfo: msg.babyInfo,
+        bodyKnowledge: null as string | null,
+        type: 'postpartum' as const,
+        info,
+      }
     }
     return null
   }, [profile])
@@ -56,27 +68,25 @@ export default function Home({ profile, todayRecord }: HomeProps) {
             </div>
           )}
 
-          <div className="flex justify-center mb-3">
+          <div className="flex justify-center mb-3 relative">
             <BabyIllustration
               type={illustrationType}
               weeks={personalized?.type === 'pregnant' ? personalized.info.weeks : undefined}
               className="w-44 h-44 animate-fade-in"
             />
+            <div className="absolute inset-0 pointer-events-none">
+              <Lottie
+                animationData={sparkleAnimation}
+                loop={true}
+                className="w-full h-full opacity-60"
+              />
+            </div>
           </div>
 
           <h1 className="text-center text-lg font-bold text-gray-700 leading-relaxed whitespace-pre-line">
             {greeting}
           </h1>
 
-          {todayRecord.praiseCount > 0 && (
-            <div className="flex justify-center mt-2">
-              <div className="flex items-center gap-1 bg-white/50 rounded-full px-3 py-1">
-                <span className="text-accent-300 text-xs font-medium">
-                  今日 {todayRecord.praiseCount}回 褒められたよ
-                </span>
-              </div>
-            </div>
-          )}
         </div>
 
         <WaveDivider color="#FDFBF7" className="w-full h-8 -mb-px" />

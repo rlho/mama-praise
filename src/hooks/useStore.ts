@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { getTodayKey } from '../utils/date'
+import { fetchProfile, upsertProfile, fetchAllRecords, upsertDayRecord } from '../lib/supabase'
 
 export interface UserProfile {
   status: 'pregnant' | 'postpartum' | 'skipped'
@@ -37,23 +38,60 @@ const defaultProfile: UserProfile = {
   onboardingDone: false,
 }
 
-export function useStore() {
+export function useStore(userId?: string | null) {
   const [profile, setProfileState] = useState<UserProfile>(() =>
     loadJSON(PROFILE_KEY, defaultProfile)
   )
   const [records, setRecordsState] = useState<Records>(() =>
     loadJSON(RECORDS_KEY, {} as Records)
   )
+  const syncedRef = useRef(false)
+
+  // Supabase初回同期: ログイン済みなら読み込み
+  useEffect(() => {
+    if (!userId || syncedRef.current) return
+    syncedRef.current = true
+
+    fetchProfile(userId).then(remote => {
+      if (remote) {
+        setProfileState(remote)
+        saveJSON(PROFILE_KEY, remote)
+      } else {
+        // ローカルのプロフィールをSupabaseに保存
+        const local = loadJSON(PROFILE_KEY, defaultProfile)
+        if (local.onboardingDone) {
+          upsertProfile(userId, local)
+        }
+      }
+    })
+
+    fetchAllRecords(userId).then(remote => {
+      if (Object.keys(remote).length > 0) {
+        setRecordsState(prev => {
+          const merged = { ...prev, ...remote }
+          saveJSON(RECORDS_KEY, merged)
+          return merged
+        })
+      } else {
+        // ローカルのレコードをSupabaseに保存
+        const local = loadJSON(RECORDS_KEY, {} as Records)
+        for (const [key, rec] of Object.entries(local)) {
+          upsertDayRecord(userId, key, rec)
+        }
+      }
+    })
+  }, [userId])
 
   const setProfile = useCallback((p: UserProfile) => {
     setProfileState(p)
     saveJSON(PROFILE_KEY, p)
-  }, [])
+    if (userId) upsertProfile(userId, p)
+  }, [userId])
 
   const setRecords = useCallback((r: Records) => {
     setRecordsState(r)
     saveJSON(RECORDS_KEY, r)
-  }, [])
+  }, [userId])
 
   const todayKey = getTodayKey()
 
@@ -73,9 +111,10 @@ export function useStore() {
       }
       const newRecords = { ...prev, [key]: newRecord }
       saveJSON(RECORDS_KEY, newRecords)
+      if (userId) upsertDayRecord(userId, key, newRecord)
       return newRecords
     })
-  }, [])
+  }, [userId])
 
   const incrementPraise = useCallback(() => {
     setRecordsState(prev => {
@@ -84,9 +123,10 @@ export function useStore() {
       const newRecord = { ...current, praiseCount: current.praiseCount + 1 }
       const newRecords = { ...prev, [key]: newRecord }
       saveJSON(RECORDS_KEY, newRecords)
+      if (userId) upsertDayRecord(userId, key, newRecord)
       return newRecords
     })
-  }, [])
+  }, [userId])
 
   const getRecordForDay = useCallback((dateKey: string): DayRecord | null => {
     return records[dateKey] || null

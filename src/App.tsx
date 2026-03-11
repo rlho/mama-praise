@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useStore } from './hooks/useStore'
+import { useAuth } from './hooks/useAuth'
+import AuthGate from './components/AuthGate'
 import Onboarding from './components/Onboarding'
 import Home from './components/Home'
 import ActivityGrid from './components/ActivityGrid'
-import Summary from './components/Summary'
-import Calendar from './components/Calendar'
 import Settings from './components/Settings'
 
-type Tab = 'home' | 'activity' | 'summary' | 'calendar' | 'settings'
+type Tab = 'home' | 'activity' | 'settings'
 
 const tabs: { id: Tab; label: string; icon: (active: boolean) => JSX.Element }[] = [
   {
@@ -17,14 +17,6 @@ const tabs: { id: Tab; label: string; icon: (active: boolean) => JSX.Element }[]
   {
     id: 'activity', label: 'きろく',
     icon: (a) => <SvgIcon a={a}><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></SvgIcon>,
-  },
-  {
-    id: 'summary', label: 'ふりかえり',
-    icon: (a) => <SvgIcon a={a} fill={a}><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" /></SvgIcon>,
-  },
-  {
-    id: 'calendar', label: 'カレンダー',
-    icon: (a) => <SvgIcon a={a}><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></SvgIcon>,
   },
   {
     id: 'settings', label: 'せってい',
@@ -44,8 +36,8 @@ function SvgIcon({ a, fill, children }: { a: boolean; fill?: boolean; children: 
   )
 }
 
-export default function App() {
-  const store = useStore()
+function AppContent({ userId }: { userId?: string | null }) {
+  const store = useStore(userId)
   const [activeTab, setActiveTab] = useState<Tab>('home')
 
   if (!store.profile.onboardingDone) {
@@ -61,8 +53,6 @@ export default function App() {
         {activeTab === 'activity' && (
           <ActivityGrid todayRecord={store.todayRecord} toggleActivity={store.toggleActivity} incrementPraise={store.incrementPraise} showBabyCategory={showBabyCategory} />
         )}
-        {activeTab === 'summary' && <Summary todayRecord={store.todayRecord} />}
-        {activeTab === 'calendar' && <Calendar records={store.records} getRecordForDay={store.getRecordForDay} />}
         {activeTab === 'settings' && <Settings profile={store.profile} setProfile={store.setProfile} />}
       </main>
 
@@ -85,5 +75,20 @@ export default function App() {
         </div>
       </nav>
     </div>
+  )
+}
+
+export default function App() {
+  const skipAuth = window.location.hash === '#skip-auth'
+  const { user } = useAuth()
+
+  if (skipAuth) {
+    return <AppContent />
+  }
+
+  return (
+    <AuthGate>
+      <AppContent userId={user?.id} />
+    </AuthGate>
   )
 }

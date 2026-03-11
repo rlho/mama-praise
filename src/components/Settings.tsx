@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { UserProfile } from '../hooks/useStore'
+import { useNotification } from '../hooks/useNotification'
+import { useAuth } from '../hooks/useAuth'
 import { getPregnancyInfo, getPostpartumInfo } from '../utils/date'
 
 interface SettingsProps {
@@ -11,6 +13,8 @@ export default function Settings({ profile, setProfile }: SettingsProps) {
   const [status, setStatus] = useState<'pregnant' | 'postpartum' | 'skipped'>(profile.status)
   const [date, setDate] = useState(profile.dueDate || profile.birthDate || '')
   const [saved, setSaved] = useState(false)
+  const { permission, enabled: notifEnabled, requestAndEnable, disable: disableNotif } = useNotification()
+  const { user, signOut } = useAuth()
 
   const handleSave = () => {
     const newProfile: UserProfile = {
@@ -94,8 +98,68 @@ export default function Settings({ profile, setProfile }: SettingsProps) {
           {saved ? '保存しました' : '保存する'}
         </button>
 
+        {/* 通知設定 */}
+        <div className="bg-white rounded-2xl p-5 shadow-card border border-ivory-200">
+          <label className="text-xs font-bold text-gray-400 mb-3 block">夜の通知</label>
+          <p className="text-xs text-gray-400 mb-3">毎晩22時に褒めメッセージを届けるよ</p>
+          {permission === 'denied' ? (
+            <p className="text-xs text-red-400">通知がブロックされています。ブラウザの設定から許可してください</p>
+          ) : (
+            <button
+              onClick={() => notifEnabled ? disableNotif() : requestAndEnable()}
+              className={`w-full py-3 rounded-xl text-sm font-bold transition-all ${
+                notifEnabled
+                  ? 'bg-accent-100 text-accent-500 ring-2 ring-accent-200'
+                  : 'bg-ivory-100 text-gray-500'
+              }`}
+            >
+              <span className="flex items-center justify-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={notifEnabled ? '#B07A55' : '#999'} strokeWidth="2" strokeLinecap="round">
+                  <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>
+                </svg>
+                {notifEnabled ? '通知ON' : '通知をONにする'}
+              </span>
+            </button>
+          )}
+        </div>
+
+        {/* アカウント */}
+        <div className="bg-white rounded-2xl p-5 shadow-card border border-ivory-200">
+          <label className="text-xs font-bold text-gray-400 mb-3 block">アカウント</label>
+          {user ? (
+            <div>
+              <p className="text-xs text-gray-500 mb-3">{user.email} でログイン中</p>
+              <p className="text-xs text-gray-400 mb-3">データはクラウドに保存されています</p>
+              <button
+                onClick={signOut}
+                className="w-full py-3 rounded-xl text-sm font-bold bg-ivory-100 text-gray-500 transition-all active:scale-95"
+              >
+                ログアウト
+              </button>
+            </div>
+          ) : (
+            <div>
+              <p className="text-xs text-gray-400 mb-3">
+                ログインするとデータがクラウドに保存されます。<br />
+                端末を変えてもデータが引き継げます。
+              </p>
+              <button
+                onClick={() => { window.location.hash = ''; window.location.reload() }}
+                className="w-full py-3 rounded-xl text-sm font-bold bg-accent-100 text-accent-500 ring-2 ring-accent-200 transition-all active:scale-95"
+              >
+                ログインする
+              </button>
+            </div>
+          )}
+        </div>
+
         <div className="bg-ivory-100 rounded-xl p-4 text-center">
-          <p className="text-[11px] text-gray-400">データはすべてこの端末に保存されています。<br />アカウント登録は不要です。</p>
+          <p className="text-[11px] text-gray-400">
+            {user
+              ? 'データはクラウドに安全に保存されています。'
+              : <>データはこの端末のブラウザに保存されています。<br />キャッシュクリアで消える可能性があります。</>
+            }
+          </p>
         </div>
 
         <div className="h-4" />

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import Lottie from 'lottie-react'
 import confettiAnimation from '../assets/confetti.json'
-import starsAnimation from '../assets/stars.json'
+import heartAnimation from '../assets/heart.json'
 
 interface PraisePopupProps {
   message: string
@@ -38,11 +38,11 @@ export default function PraisePopup({ message, onClose }: PraisePopupProps) {
 
       {/* メインカード */}
       <div className={`relative bg-white rounded-3xl p-8 mx-8 max-w-sm w-full text-center shadow-xl transition-all duration-500 border border-ivory-200 ${visible ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
-        {/* Stars animation on top */}
-        <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-24 h-24 pointer-events-none">
+        {/* Heart animation on top */}
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-28 h-28 pointer-events-none">
           <Lottie
-            animationData={starsAnimation}
-            loop={true}
+            animationData={heartAnimation}
+            loop={false}
             className="w-full h-full"
           />
         </div>
