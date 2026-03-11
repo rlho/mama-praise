@@ -32,7 +32,8 @@ export default function AuthGate({ children }: AuthGateProps) {
     const { error: err } = await signInWithEmail(email.trim())
     setSending(false)
     if (err) {
-      setError(err.message || '送信できませんでした。もう一度試してね')
+      console.error('Auth error:', err)
+      setError(`${err.message || '不明なエラー'}（${err.status || 'N/A'}）`)
     } else {
       setSent(true)
     }
