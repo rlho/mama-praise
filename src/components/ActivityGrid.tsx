@@ -29,7 +29,7 @@ function getSummaryMessage(recorded: string[]): string | null {
   const count = recorded.length
   if (count === 0) return null
 
-  const hasBasic = recorded.some(id => ['wakeup', 'eat', 'drink', 'sleep', 'bath'].includes(id))
+  const hasBasic = recorded.some(id => ['wakeup', 'breakfast', 'lunch', 'dinner', 'drink', 'sleep', 'bath'].includes(id))
   const hasBaby = recorded.some(id => ['breastfeed', 'diaper', 'hold', 'put_to_sleep', 'baby_bath', 'milk', 'baby_food', 'night_cry', 'soothe', 'play', 'read_book'].includes(id))
   const hasHousework = recorded.some(id => ['housework', 'laundry', 'cook', 'dishes', 'clean'].includes(id))
 
