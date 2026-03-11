@@ -84,7 +84,7 @@ function scheduleNightNotification() {
 
 function showNightNotification() {
   const msg = nightMessages[Math.floor(Math.random() * nightMessages.length)];
-  self.registration.showNotification('ママほめ', {
+  self.registration.showNotification('ほめぽめ', {
     body: msg,
     icon: '/icon-192.png',
     badge: '/icon-192.png',

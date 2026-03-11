@@ -2,16 +2,24 @@ import { useState, useEffect, useCallback } from 'react'
 
 const NOTIFICATION_KEY = 'mama-praise-notification'
 
+const isNotificationSupported = typeof Notification !== 'undefined'
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+  || (navigator as any).standalone === true
+
 export function useNotification() {
   const [permission, setPermission] = useState<NotificationPermission>(
-    typeof Notification !== 'undefined' ? Notification.permission : 'default'
+    isNotificationSupported ? Notification.permission : 'default'
   )
   const [enabled, setEnabledState] = useState(() => {
     return localStorage.getItem(NOTIFICATION_KEY) === 'enabled'
   })
 
+  // iOSでPWAとしてインストールされていない場合は通知不可
+  const notSupported = !isNotificationSupported || (isIOS && !isStandalone)
+
   const requestAndEnable = useCallback(async () => {
-    if (typeof Notification === 'undefined') return false
+    if (!isNotificationSupported) return false
 
     let perm = Notification.permission
     if (perm === 'default') {
@@ -22,7 +30,6 @@ export function useNotification() {
     if (perm === 'granted') {
       localStorage.setItem(NOTIFICATION_KEY, 'enabled')
       setEnabledState(true)
-      // Service Workerに通知スケジュールを依頼
       const reg = await navigator.serviceWorker?.ready
       reg?.active?.postMessage({ type: 'SCHEDULE_NOTIFICATION' })
       return true
@@ -35,7 +42,6 @@ export function useNotification() {
     setEnabledState(false)
   }, [])
 
-  // アプリ起動時に通知が有効なら再スケジュール
   useEffect(() => {
     if (enabled && permission === 'granted') {
       navigator.serviceWorker?.ready.then(reg => {
@@ -44,5 +50,5 @@ export function useNotification() {
     }
   }, [enabled, permission])
 
-  return { permission, enabled, requestAndEnable, disable }
+  return { permission, enabled, notSupported, requestAndEnable, disable }
 }
