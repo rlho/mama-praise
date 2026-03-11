@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Rounded+Mplus+1c:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-ivory-50 text-gray-700 font-sans;
+    min-height: 100dvh;
+    overscroll-behavior: none;
+    font-feature-settings: "palt";
+  }
+
+  #root {
+    min-height: 100dvh;
+  }
+}
+
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+}
+
+.praise-overlay {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+::-webkit-scrollbar {
+  width: 0px;
+}
