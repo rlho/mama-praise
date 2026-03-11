@@ -43,7 +43,7 @@ export default function AuthGate({ children }: AuthGateProps) {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-accent-500 mb-2">ほめぽめ</h1>
-          <p className="text-sm text-gray-500">がんばるママを毎日ほめるアプリ</p>
+          <p className="text-sm text-gray-500">がんばるプレママ・ママを応援するアプリ</p>
         </div>
 
         {sent ? (

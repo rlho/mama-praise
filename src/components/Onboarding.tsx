@@ -40,7 +40,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               <BabyIllustration type="default" className="w-48 h-48 mx-auto mb-4" />
               <h1 className="text-2xl font-bold text-gray-700 mb-2">ほめぽめ</h1>
               <p className="text-sm text-gray-400 mb-8 leading-relaxed">
-                頑張るあなたを<br />毎日褒めるアプリだよ
+                がんばるプレママ・ママを<br />応援するアプリだよ
               </p>
               <button onClick={() => setStep('date')}
                 className="w-full py-4 bg-accent-400 text-white rounded-full text-base font-bold active:scale-95 transition-transform shadow-card">
