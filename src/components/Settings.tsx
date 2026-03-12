@@ -231,7 +231,7 @@ export default function Settings({ profile, setProfile }: SettingsProps) {
           </p>
         </div>
 
-        <div className="h-4" />
+        <div className="h-24" />
       </div>
     </div>
   )
