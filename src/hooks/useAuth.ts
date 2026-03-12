@@ -19,12 +19,16 @@ export function useAuth() {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signInWithEmail = useCallback(async (email: string) => {
-    const { error } = await supabase.auth.signInWithOtp({
+  const signInWithOtp = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.signInWithOtp({ email })
+    return { error }
+  }, [])
+
+  const verifyOtp = useCallback(async (email: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({
       email,
-      options: {
-        emailRedirectTo: window.location.origin,
-      },
+      token,
+      type: 'email',
     })
     return { error }
   }, [])
@@ -34,5 +38,5 @@ export function useAuth() {
     setUser(null)
   }, [])
 
-  return { user, loading, signInWithEmail, signOut }
+  return { user, loading, signInWithOtp, verifyOtp, signOut }
 }
