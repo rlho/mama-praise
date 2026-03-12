@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useStore } from './hooks/useStore'
 import { useAuth } from './hooks/useAuth'
-import AuthGate from './components/AuthGate'
 import Onboarding from './components/Onboarding'
 import Home from './components/Home'
 import ActivityGrid from './components/ActivityGrid'
@@ -85,16 +84,6 @@ function AppContent({ userId }: { userId?: string | null }) {
 }
 
 export default function App() {
-  const skipAuth = window.location.hash === '#skip-auth'
   const { user } = useAuth()
-
-  if (skipAuth) {
-    return <AppContent />
-  }
-
-  return (
-    <AuthGate>
-      <AppContent userId={user?.id} />
-    </AuthGate>
-  )
+  return <AppContent userId={user?.id} />
 }

@@ -13,7 +13,14 @@ export default function Settings({ profile, setProfile }: SettingsProps) {
   const [date, setDate] = useState(profile.dueDate || profile.birthDate || '')
   const [saved, setSaved] = useState(false)
   const { permission, enabled: notifEnabled, notSupported, requestAndEnable, disable: disableNotif } = useNotification()
-  const { user, signOut } = useAuth()
+  const { user, signOut, signInWithOtp, verifyOtp } = useAuth()
+
+  // ログインフォーム用state
+  const [loginStep, setLoginStep] = useState<'none' | 'email' | 'code'>('none')
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginToken, setLoginToken] = useState('')
+  const [loginError, setLoginError] = useState('')
+  const [loginSending, setLoginSending] = useState(false)
 
   const handleSave = () => {
     if (!date) {
@@ -32,6 +39,32 @@ export default function Settings({ profile, setProfile }: SettingsProps) {
     }
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  const handleSendCode = async () => {
+    if (!loginEmail.trim() || loginSending) return
+    setLoginSending(true)
+    setLoginError('')
+    const { error } = await signInWithOtp(loginEmail.trim())
+    setLoginSending(false)
+    if (error) {
+      setLoginError(error.message || '送信できませんでした')
+    } else {
+      setLoginStep('code')
+    }
+  }
+
+  const handleVerifyCode = async () => {
+    if (!loginToken.trim() || loginSending) return
+    setLoginSending(true)
+    setLoginError('')
+    const { error } = await verifyOtp(loginEmail.trim(), loginToken.trim())
+    setLoginSending(false)
+    if (error) {
+      setLoginError('コードが正しくないかもしれません')
+    } else {
+      setLoginStep('none')
+    }
   }
 
   const currentInfo = (() => {
@@ -122,17 +155,68 @@ export default function Settings({ profile, setProfile }: SettingsProps) {
                 ログアウト
               </button>
             </div>
-          ) : (
+          ) : loginStep === 'none' ? (
             <div>
               <p className="text-xs text-gray-400 mb-3">
                 ログインするとデータがクラウドに保存されます。<br />
                 端末を変えてもデータが引き継げます。
               </p>
               <button
-                onClick={() => { window.location.hash = ''; window.location.reload() }}
+                onClick={() => setLoginStep('email')}
                 className="w-full py-3 rounded-xl text-sm font-bold bg-accent-100 text-accent-500 ring-2 ring-accent-200 transition-all active:scale-95"
               >
                 ログインする
+              </button>
+            </div>
+          ) : loginStep === 'email' ? (
+            <div className="animate-fade-in">
+              <input
+                type="email"
+                value={loginEmail}
+                onChange={e => setLoginEmail(e.target.value)}
+                placeholder="example@email.com"
+                className="w-full py-3 px-4 rounded-xl border-2 border-ivory-200 text-sm focus:outline-none focus:border-accent-300 bg-white mb-3"
+                autoComplete="email"
+              />
+              {loginError && <p className="text-xs text-red-400 mb-2">{loginError}</p>}
+              <button
+                onClick={handleSendCode}
+                disabled={loginSending || !loginEmail.trim()}
+                className="w-full py-3 rounded-xl text-sm font-bold bg-accent-400 text-white active:scale-95 transition-all disabled:opacity-50 mb-2"
+              >
+                {loginSending ? '送信中...' : '認証コードを送る'}
+              </button>
+              <button onClick={() => { setLoginStep('none'); setLoginError('') }}
+                className="w-full text-xs text-gray-400 underline">
+                キャンセル
+              </button>
+            </div>
+          ) : (
+            <div className="animate-fade-in">
+              <p className="text-xs text-gray-500 mb-3 text-center">
+                <span className="font-bold">{loginEmail}</span> に送った6桁のコードを入力
+              </p>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                value={loginToken}
+                onChange={e => setLoginToken(e.target.value.replace(/\D/g, ''))}
+                placeholder="000000"
+                className="w-full py-3 px-4 rounded-xl border-2 border-ivory-200 text-center text-xl tracking-[0.4em] font-bold focus:outline-none focus:border-accent-300 bg-white mb-3"
+              />
+              {loginError && <p className="text-xs text-red-400 mb-2">{loginError}</p>}
+              <button
+                onClick={handleVerifyCode}
+                disabled={loginSending || loginToken.length < 6}
+                className="w-full py-3 rounded-xl text-sm font-bold bg-accent-400 text-white active:scale-95 transition-all disabled:opacity-50 mb-2"
+              >
+                {loginSending ? '確認中...' : 'ログイン'}
+              </button>
+              <button onClick={() => { setLoginStep('email'); setLoginToken(''); setLoginError('') }}
+                className="w-full text-xs text-gray-400 underline">
+                メールアドレスを変更
               </button>
             </div>
           )}
