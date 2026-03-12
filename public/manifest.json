@@ -1,15 +1,15 @@
 {
-  "name": "ママほめ",
-  "short_name": "ママほめ",
-  "description": "頑張るママを毎日褒めるアプリ",
+  "name": "ほめぽめ",
+  "short_name": "ほめぽめ",
+  "description": "がんばるプレママ・ママを応援するアプリ",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FFF8F5",
-  "theme_color": "#FFF0E8",
+  "background_color": "#FDFBF7",
+  "theme_color": "#FDFBF7",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>",
+      "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     }
