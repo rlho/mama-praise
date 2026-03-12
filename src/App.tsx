@@ -55,7 +55,7 @@ function AppContent({ userId }: { userId?: string | null }) {
         {activeTab === 'home' && (
           <>
             <Home profile={store.profile} todayRecord={store.todayRecord} />
-            <ActivityGrid todayRecord={store.todayRecord} toggleActivity={store.toggleActivity} incrementPraise={store.incrementPraise} showBabyCategory={showBabyCategory} />
+            <ActivityGrid todayRecord={store.todayRecord} toggleActivity={store.toggleActivity} incrementPraise={store.incrementPraise} showBabyCategory={showBabyCategory} customActivities={store.customActivities} addCustomActivity={store.addCustomActivity} removeCustomActivity={store.removeCustomActivity} />
           </>
         )}
         {activeTab === 'settings' && <Settings profile={store.profile} setProfile={store.setProfile} />}

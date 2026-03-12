@@ -18,6 +18,12 @@ export type Records = Record<string, DayRecord>
 
 const PROFILE_KEY = 'mama-praise-profile'
 const RECORDS_KEY = 'mama-praise-records'
+const CUSTOM_ACTIVITIES_KEY = 'mama-praise-custom-activities'
+
+export interface CustomActivity {
+  id: string
+  label: string
+}
 
 function loadJSON<T>(key: string, fallback: T): T {
   try {
@@ -44,6 +50,9 @@ export function useStore(userId?: string | null) {
   )
   const [records, setRecordsState] = useState<Records>(() =>
     loadJSON(RECORDS_KEY, {} as Records)
+  )
+  const [customActivities, setCustomActivitiesState] = useState<CustomActivity[]>(() =>
+    loadJSON(CUSTOM_ACTIVITIES_KEY, [] as CustomActivity[])
   )
   const syncedRef = useRef(false)
 
@@ -141,6 +150,24 @@ export function useStore(userId?: string | null) {
     }
   }, [todayKey, incrementPraise])
 
+  const addCustomActivity = useCallback((label: string) => {
+    const id = `custom_${Date.now()}`
+    setCustomActivitiesState(prev => {
+      const updated = [...prev, { id, label }]
+      saveJSON(CUSTOM_ACTIVITIES_KEY, updated)
+      return updated
+    })
+    return id
+  }, [])
+
+  const removeCustomActivity = useCallback((id: string) => {
+    setCustomActivitiesState(prev => {
+      const updated = prev.filter(a => a.id !== id)
+      saveJSON(CUSTOM_ACTIVITIES_KEY, updated)
+      return updated
+    })
+  }, [])
+
   return {
     profile,
     setProfile,
@@ -149,5 +176,8 @@ export function useStore(userId?: string | null) {
     toggleActivity,
     incrementPraise,
     getRecordForDay,
+    customActivities,
+    addCustomActivity,
+    removeCustomActivity,
   }
 }
