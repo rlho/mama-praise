@@ -1,13 +1,6 @@
-const CACHE_NAME = 'mama-praise-v2';
-const urlsToCache = [
-  '/',
-  '/index.html',
-];
+const CACHE_NAME = 'mama-praise-v3';
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
-  );
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
@@ -24,25 +17,39 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// ネットワーク優先: オンラインなら最新を取得、オフラインならキャッシュ
 self.addEventListener('fetch', (event) => {
+  // ナビゲーションリクエスト（HTMLページ）はネットワーク優先
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // その他のリクエスト（JS/CSS/画像）もネットワーク優先
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) return response;
-      return fetch(event.request).then((fetchResponse) => {
-        if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic') {
-          return fetchResponse;
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
-        const responseToCache = fetchResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
+        return response;
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cached) => {
+          return cached || new Response('オフラインです', {
+            headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+          });
         });
-        return fetchResponse;
-      }).catch(() => {
-        return new Response('オフラインです。でも大丈夫、あなたは今日も頑張ってるよ。', {
-          headers: { 'Content-Type': 'text/plain; charset=utf-8' }
-        });
-      });
-    })
+      })
   );
 });
 
@@ -77,7 +84,6 @@ function scheduleNightNotification() {
 
   setTimeout(() => {
     showNightNotification();
-    // 次の日もスケジュール
     scheduleNightNotification();
   }, delay);
 }
@@ -86,8 +92,8 @@ function showNightNotification() {
   const msg = nightMessages[Math.floor(Math.random() * nightMessages.length)];
   self.registration.showNotification('ほめぽめ', {
     body: msg,
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    icon: '/icon.svg',
+    badge: '/icon.svg',
     tag: 'night-praise',
     renotify: true,
   });
