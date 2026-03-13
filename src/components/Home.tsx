@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import Lottie from 'lottie-react'
 import sparkleAnimation from '../assets/sparkle.json'
 import { UserProfile, DayRecord } from '../hooks/useStore'
-import { timeGreetings } from '../data/messages'
+import { timeGreetings, postpartumExtraGreetings } from '../data/messages'
 import { getDailyPregnancyMessage } from '../data/pregnancyDaily'
 import { getDailyPostpartumMessage } from '../data/postpartumDaily'
 import {
@@ -21,7 +21,15 @@ interface HomeProps {
 
 export default function Home({ profile, todayRecord }: HomeProps) {
   const timeOfDay = getTimeOfDay()
-  const greeting = useMemo(() => pickDaily(timeGreetings[timeOfDay]), [timeOfDay])
+  const greetingPool = useMemo(() => {
+    const base = timeGreetings[timeOfDay]
+    const extra = postpartumExtraGreetings[timeOfDay as keyof typeof postpartumExtraGreetings]
+    if (profile.status === 'postpartum' && extra) {
+      return [...base, ...extra]
+    }
+    return base
+  }, [timeOfDay, profile.status])
+  const greeting = useMemo(() => pickDaily(greetingPool), [greetingPool])
 
   const personalized = useMemo(() => {
     if (profile.status === 'pregnant' && profile.dueDate) {
@@ -77,7 +85,7 @@ export default function Home({ profile, todayRecord }: HomeProps) {
             <div className="absolute inset-0 pointer-events-none">
               <Lottie
                 animationData={sparkleAnimation}
-                loop={true}
+                loop={5}
                 className="w-full h-full opacity-60"
               />
             </div>

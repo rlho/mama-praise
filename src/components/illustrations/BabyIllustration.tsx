@@ -8,7 +8,7 @@ interface Props {
 
 export default function BabyIllustration({ type, weeks = 20, className = '' }: Props) {
   if (type === 'pregnant') return <PregnantBaby weeks={weeks} className={className} />
-  if (type === 'postpartum') return <PostpartumBaby className={className} />
+  if (type === 'postpartum') return <PregnantBaby weeks={40} className={className} />
   return <DefaultIllustration className={className} />
 }
 
@@ -61,33 +61,40 @@ function PostpartumBaby({ className }: { className: string }) {
     <svg viewBox="0 0 200 200" className={className} fill="none">
       <circle cx="100" cy="100" r="90" fill="#FAF6EE" />
 
-      {/* おくるみ */}
-      <ellipse cx="100" cy="115" rx="42" ry="48" fill="#F3ECDE" />
-      <ellipse cx="100" cy="115" rx="38" ry="44" fill="#FAF6EE" />
-      <path d="M65 95 Q100 105 135 95 Q130 90 100 88 Q70 90 65 95Z" fill="#E8DECE" />
+      {/* おくるみ — ふんわり丸い形 */}
+      <ellipse cx="100" cy="120" rx="44" ry="46" fill="#F0E6D6" />
+      <ellipse cx="100" cy="120" rx="40" ry="42" fill="#FAF3EA" />
+      {/* おくるみの襟元 */}
+      <path d="M62 100 Q80 112 100 108 Q120 112 138 100 Q134 94 100 92 Q66 94 62 100Z" fill="#E8DECE" />
 
-      {/* 頭 */}
-      <circle cx="100" cy="78" r="26" fill="#FFECD2" />
+      {/* まるい頭 */}
+      <circle cx="100" cy="76" r="30" fill="#FFECD2" />
 
-      {/* 髪の毛 */}
-      <path d="M92 55 Q95 48 100 52 Q105 48 108 55" stroke="#C4956A" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+      {/* ふわふわ前髪 */}
+      <path d="M80 60 Q85 50 92 55 Q96 48 100 52 Q104 48 108 55 Q115 50 120 60" stroke="#D4B896" strokeWidth="3" strokeLinecap="round" fill="none" />
 
-      {/* ほっぺ */}
-      <circle cx="85" cy="83" r="7" fill="#F0D4BB" opacity="0.35" />
-      <circle cx="115" cy="83" r="7" fill="#F0D4BB" opacity="0.35" />
+      {/* おおきなほっぺ */}
+      <circle cx="82" cy="82" r="9" fill="#FCCFB5" opacity="0.3" />
+      <circle cx="118" cy="82" r="9" fill="#FCCFB5" opacity="0.3" />
 
-      {/* 目 */}
-      <ellipse cx="91" cy="76" rx="3.5" ry="4" fill="#5D4E3C" />
-      <circle cx="90" cy="74.5" r="1.2" fill="white" />
-      <ellipse cx="109" cy="76" rx="3.5" ry="4" fill="#5D4E3C" />
-      <circle cx="108" cy="74.5" r="1.2" fill="white" />
+      {/* くりくりお目目 */}
+      <ellipse cx="90" cy="74" rx="4.5" ry="5" fill="#4A3D2E" />
+      <circle cx="88.5" cy="72.5" r="1.8" fill="white" />
+      <circle cx="91.5" cy="75.5" r="0.8" fill="white" opacity="0.6" />
+      <ellipse cx="110" cy="74" rx="4.5" ry="5" fill="#4A3D2E" />
+      <circle cx="108.5" cy="72.5" r="1.8" fill="white" />
+      <circle cx="111.5" cy="75.5" r="0.8" fill="white" opacity="0.6" />
 
-      {/* 口 */}
-      <path d="M95 87 Q100 92 105 87" stroke="#D4A882" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      {/* まゆげ */}
+      <path d="M86 67 Q90 65 94 67" stroke="#D4B896" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+      <path d="M106 67 Q110 65 114 67" stroke="#D4B896" strokeWidth="1.2" strokeLinecap="round" fill="none" />
 
-      {/* 手 */}
-      <ellipse cx="70" cy="108" rx="8" ry="6" fill="#FFECD2" transform="rotate(-15 70 108)" />
-      <ellipse cx="130" cy="108" rx="8" ry="6" fill="#FFECD2" transform="rotate(15 130 108)" />
+      {/* にっこり口 */}
+      <path d="M94 86 Q100 92 106 86" stroke="#D4A882" strokeWidth="2" strokeLinecap="round" fill="none" />
+
+      {/* ちいさな手 */}
+      <circle cx="67" cy="112" r="7" fill="#FFECD2" />
+      <circle cx="133" cy="112" r="7" fill="#FFECD2" />
 
       <g opacity="0.5">
         <Star cx={38} cy={45} size={8} />

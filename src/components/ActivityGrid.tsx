@@ -33,7 +33,7 @@ function getSummaryMessage(recorded: string[]): string | null {
   if (count === 0) return null
 
   const hasBasic = recorded.some(id => ['wakeup', 'breakfast', 'lunch', 'dinner', 'drink', 'sleep', 'bath'].includes(id))
-  const hasBaby = recorded.some(id => ['breastfeed', 'diaper', 'hold', 'put_to_sleep', 'baby_bath', 'milk', 'baby_food', 'night_cry', 'soothe', 'play', 'read_book'].includes(id))
+  const hasBaby = recorded.some(id => ['breastfeed', 'diaper', 'hold', 'put_to_sleep', 'baby_bath', 'milk', 'baby_food', 'night_cry', 'soothe', 'play', 'read_book', 'survived_night', 'wipe_drool', 'carry_walk', 'toy_play', 'watch_baby'].includes(id))
   const hasHousework = recorded.some(id => ['housework', 'laundry', 'cook', 'dishes', 'clean'].includes(id))
 
   if (count >= 8) return 'こんなにたくさん…！今日のあなた、本当にすごいよ。ちゃんと休んでね'
@@ -91,7 +91,11 @@ function ActivityButton({ id, label, isActive, onTap, onLongPress }: {
 }
 
 export default function ActivityGrid({ todayRecord, toggleActivity, incrementPraise, showBabyCategory, customActivities, addCustomActivity, removeCustomActivity }: ActivityGridProps) {
-  const visibleCategories = categories.filter(c => showBabyCategory || c.id !== 'baby')
+  const visibleCategories = categories.filter(c => {
+    if (c.id === 'baby') return showBabyCategory
+    if (c.id === 'prenatal') return !showBabyCategory
+    return true
+  })
   const [showAddForm, setShowAddForm] = useState(false)
   const [newLabel, setNewLabel] = useState('')
 

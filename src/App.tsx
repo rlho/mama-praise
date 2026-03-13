@@ -38,26 +38,31 @@ function AppContent({ userId }: { userId?: string | null }) {
   const { permission, notSupported, requestAndEnable } = useNotification()
   const [showNotifPrompt, setShowNotifPrompt] = useState(false)
 
-  // オンボーディング完了後に通知許可を求める
+  // オンボーディング完了後に通知許可を求める（ONなら出さない、「あとで」なら3日後に再表示）
   useEffect(() => {
-    if (store.profile.onboardingDone && !notSupported && permission === 'default') {
-      const prompted = localStorage.getItem('mama-praise-notif-prompted')
-      if (!prompted) {
-        // 少し待ってから表示
-        const timer = setTimeout(() => setShowNotifPrompt(true), 1500)
-        return () => clearTimeout(timer)
-      }
+    if (!store.profile.onboardingDone || notSupported || permission === 'granted') return
+
+    const dismissedAt = localStorage.getItem('mama-praise-notif-dismissed-at')
+    if (dismissedAt) {
+      const daysSince = (Date.now() - Number(dismissedAt)) / (1000 * 60 * 60 * 24)
+      if (daysSince < 3) return
     }
+
+    const accepted = localStorage.getItem('mama-praise-notif-accepted')
+    if (accepted) return
+
+    const timer = setTimeout(() => setShowNotifPrompt(true), 1500)
+    return () => clearTimeout(timer)
   }, [store.profile.onboardingDone, notSupported, permission])
 
   const handleNotifAccept = async () => {
-    localStorage.setItem('mama-praise-notif-prompted', '1')
+    localStorage.setItem('mama-praise-notif-accepted', '1')
     setShowNotifPrompt(false)
     await requestAndEnable()
   }
 
   const handleNotifDismiss = () => {
-    localStorage.setItem('mama-praise-notif-prompted', '1')
+    localStorage.setItem('mama-praise-notif-dismissed-at', String(Date.now()))
     setShowNotifPrompt(false)
   }
 
