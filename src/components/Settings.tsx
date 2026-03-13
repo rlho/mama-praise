@@ -114,7 +114,7 @@ export default function Settings({ profile, setProfile }: SettingsProps) {
         {/* 通知設定 */}
         <div className="bg-white rounded-2xl p-5 shadow-card border border-ivory-200">
           <label className="text-xs font-bold text-gray-400 mb-3 block">夜の通知</label>
-          <p className="text-xs text-gray-400 mb-3">毎晩22時に褒めメッセージを届けるよ</p>
+          <p className="text-xs text-gray-400 mb-3">毎晩20時にメッセージを届けるよ</p>
           {notSupported ? (
             <p className="text-xs text-gray-400">
               iOSで通知を使うには、まずホーム画面に追加してね<br />

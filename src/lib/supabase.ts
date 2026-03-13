@@ -63,3 +63,31 @@ export async function upsertDayRecord(userId: string, dateKey: string, record: D
     updated_at: new Date().toISOString(),
   })
 }
+
+// --- Custom Activities ---
+import type { CustomActivity } from '../hooks/useStore'
+
+export async function fetchCustomActivities(userId: string): Promise<CustomActivity[]> {
+  const { data, error } = await supabase
+    .from('custom_activities')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at')
+
+  if (error || !data) return []
+  return data.map(row => ({ id: row.id, label: row.label }))
+}
+
+export async function upsertCustomActivity(userId: string, activity: CustomActivity) {
+  await supabase.from('custom_activities').upsert({
+    id: activity.id,
+    user_id: userId,
+    label: activity.label,
+  })
+}
+
+export async function deleteCustomActivity(userId: string, activityId: string) {
+  await supabase.from('custom_activities').delete()
+    .eq('id', activityId)
+    .eq('user_id', userId)
+}

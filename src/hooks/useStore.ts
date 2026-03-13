@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { getTodayKey } from '../utils/date'
-import { fetchProfile, upsertProfile, fetchAllRecords, upsertDayRecord } from '../lib/supabase'
+import { fetchProfile, upsertProfile, fetchAllRecords, upsertDayRecord, fetchCustomActivities, upsertCustomActivity, deleteCustomActivity } from '../lib/supabase'
 
 export interface UserProfile {
   status: 'pregnant' | 'postpartum' | 'skipped'
@@ -82,10 +82,22 @@ export function useStore(userId?: string | null) {
           return merged
         })
       } else {
-        // ローカルのレコードをSupabaseに保存
         const local = loadJSON(RECORDS_KEY, {} as Records)
         for (const [key, rec] of Object.entries(local)) {
           upsertDayRecord(userId, key, rec)
+        }
+      }
+    })
+
+    // カスタム項目の同期
+    fetchCustomActivities(userId).then(remote => {
+      if (remote.length > 0) {
+        setCustomActivitiesState(remote)
+        saveJSON(CUSTOM_ACTIVITIES_KEY, remote)
+      } else {
+        const local = loadJSON(CUSTOM_ACTIVITIES_KEY, [] as CustomActivity[])
+        for (const ca of local) {
+          upsertCustomActivity(userId, ca)
         }
       }
     })
@@ -152,13 +164,15 @@ export function useStore(userId?: string | null) {
 
   const addCustomActivity = useCallback((label: string) => {
     const id = `custom_${Date.now()}`
+    const activity = { id, label }
     setCustomActivitiesState(prev => {
-      const updated = [...prev, { id, label }]
+      const updated = [...prev, activity]
       saveJSON(CUSTOM_ACTIVITIES_KEY, updated)
       return updated
     })
+    if (userId) upsertCustomActivity(userId, activity)
     return id
-  }, [])
+  }, [userId])
 
   const removeCustomActivity = useCallback((id: string) => {
     setCustomActivitiesState(prev => {
@@ -166,7 +180,8 @@ export function useStore(userId?: string | null) {
       saveJSON(CUSTOM_ACTIVITIES_KEY, updated)
       return updated
     })
-  }, [])
+    if (userId) deleteCustomActivity(userId, id)
+  }, [userId])
 
   return {
     profile,
