@@ -6,13 +6,18 @@ import Onboarding from './components/Onboarding'
 import Home from './components/Home'
 import ActivityGrid from './components/ActivityGrid'
 import Settings from './components/Settings'
+import Chat from './components/Chat'
 
-type Tab = 'home' | 'settings'
+type Tab = 'home' | 'chat' | 'settings'
 
 const tabs: { id: Tab; label: string; icon: (active: boolean) => JSX.Element }[] = [
   {
     id: 'home', label: 'ホーム',
     icon: (a) => <SvgIcon a={a}><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline points="9,22 9,12 15,12 15,22" /></SvgIcon>,
+  },
+  {
+    id: 'chat', label: 'そうだん',
+    icon: (a) => <SvgIcon a={a}><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></SvgIcon>,
   },
   {
     id: 'settings', label: 'せってい',
@@ -106,13 +111,14 @@ function AppContent({ userId }: { userId?: string | null }) {
         </div>
       )}
 
-      <main className="flex-1 max-w-lg mx-auto w-full pb-20">
+      <main className={`flex-1 max-w-lg mx-auto w-full ${activeTab === 'chat' ? 'flex flex-col pb-14' : 'pb-20'}`}>
         {activeTab === 'home' && (
           <>
             <Home profile={store.profile} todayRecord={store.todayRecord} />
             <ActivityGrid todayRecord={store.todayRecord} toggleActivity={store.toggleActivity} incrementPraise={store.incrementPraise} showBabyCategory={showBabyCategory} customActivities={store.customActivities} addCustomActivity={store.addCustomActivity} removeCustomActivity={store.removeCustomActivity} />
           </>
         )}
+        {activeTab === 'chat' && <Chat />}
         {activeTab === 'settings' && <Settings profile={store.profile} setProfile={store.setProfile} />}
       </main>
 
