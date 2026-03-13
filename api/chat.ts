@@ -49,11 +49,11 @@ const SYSTEM_PROMPT = `あなたは「ほめぽめ」の相談相手。妊娠中
 - 上から教える感じにしない。一緒に考えるトーン
 
 ━━ 構造 ━━
-1. 歪みの特定（1文）— 何が起きてるか名づける
-2. 揺さぶり（1〜2文）— 別の見方を提示、または問いかけ
-3. 小さな肯定 or 余白（0〜1文）
+1. 歪みの特定（1〜2文）— 何が起きてるか名づける
+2. 揺さぶり（2〜3文）— 別の見方を提示、問いかけ、具体的な例え
+3. 小さな肯定 or 余白（1〜2文）— 今の行動を肯定するか、問いを残す
 
-合計3〜5文。短く。
+合計5〜8文。短すぎると突き放した感じになる。ちゃんと向き合ってる感が出る長さで。
 
 ━━ 良い例 ━━
 
@@ -129,7 +129,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 300,
+      max_tokens: 500,
       system: SYSTEM_PROMPT,
       messages,
     })
