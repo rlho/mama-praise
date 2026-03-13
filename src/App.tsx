@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore } from './hooks/useStore'
 import { useAuth } from './hooks/useAuth'
+import { useNotification } from './hooks/useNotification'
 import Onboarding from './components/Onboarding'
 import Home from './components/Home'
 import ActivityGrid from './components/ActivityGrid'
@@ -34,6 +35,31 @@ function SvgIcon({ a, fill, children }: { a: boolean; fill?: boolean; children: 
 function AppContent({ userId }: { userId?: string | null }) {
   const store = useStore(userId)
   const [activeTab, setActiveTab] = useState<Tab>('home')
+  const { permission, notSupported, requestAndEnable } = useNotification()
+  const [showNotifPrompt, setShowNotifPrompt] = useState(false)
+
+  // オンボーディング完了後に通知許可を求める
+  useEffect(() => {
+    if (store.profile.onboardingDone && !notSupported && permission === 'default') {
+      const prompted = localStorage.getItem('mama-praise-notif-prompted')
+      if (!prompted) {
+        // 少し待ってから表示
+        const timer = setTimeout(() => setShowNotifPrompt(true), 1500)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [store.profile.onboardingDone, notSupported, permission])
+
+  const handleNotifAccept = async () => {
+    localStorage.setItem('mama-praise-notif-prompted', '1')
+    setShowNotifPrompt(false)
+    await requestAndEnable()
+  }
+
+  const handleNotifDismiss = () => {
+    localStorage.setItem('mama-praise-notif-prompted', '1')
+    setShowNotifPrompt(false)
+  }
 
   if (!store.profile.onboardingDone) {
     return <Onboarding onComplete={store.setProfile} />
@@ -51,6 +77,30 @@ function AppContent({ userId }: { userId?: string | null }) {
 
   return (
     <div className="min-h-screen bg-ivory-50 flex flex-col">
+      {/* 通知許可ポップアップ */}
+      {showNotifPrompt && (
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center px-6 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-card animate-fade-in-up">
+            <p className="text-base font-bold text-gray-700 text-center mb-2">通知をオンにする？</p>
+            <p className="text-xs text-gray-400 text-center mb-5 leading-relaxed">
+              毎晩20時にメッセージを届けるよ
+            </p>
+            <button
+              onClick={handleNotifAccept}
+              className="w-full py-4 rounded-full text-base font-bold bg-accent-400 text-white shadow-card active:scale-95 transition-all mb-2"
+            >
+              オンにする
+            </button>
+            <button
+              onClick={handleNotifDismiss}
+              className="w-full py-3 text-sm text-gray-400"
+            >
+              あとで
+            </button>
+          </div>
+        </div>
+      )}
+
       <main className="flex-1 max-w-lg mx-auto w-full pb-20">
         {activeTab === 'home' && (
           <>
